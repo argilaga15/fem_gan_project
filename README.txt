@@ -36,3 +36,16 @@ At the end, it still saves the final plot as checkpoints/loss_evolution.png
 I also kept the 100-epoch .pt checkpoint cadence unchanged.
 One small note: I made the final loss_evolution.png a copy of the last periodic plot, so the end-of-training file always matches the latest plotted state.
 If you want, I can also make the checkpoint interval configurable from config.py so you can change 20 and 100 without touching the training script.
+
+Data type support:
+What changed:
+preprocess() now handles:
+unsigned integers like uint8, uint16, uint32
+signed integers like int16, int32
+floating-point arrays like float32 and float64
+It normalizes to [0, 1] using the dtype’s natural range for integers.
+For floats, it uses the observed range when values are outside [0, 1].
+It still keeps  original inversion convention and final output range of [-1, 1].
+preprocess(x, invert=True) now takes an optional invert flag.
+TomographyDataset(..., invert=True) now stores that setting and passes it through.
+The default behavior is unchanged, so your current pipeline still inverts by default.
