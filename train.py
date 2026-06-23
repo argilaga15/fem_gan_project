@@ -11,7 +11,14 @@ from fem import FEMSupervisor
 from utils import update_ema
 from loadervol import load_volume
 
+#print(torch.version.cuda) # Should show 12.4
+#print(torch.cuda.is_available()) # Should be True if GPU is detected
+
+#print("Torch version:", torch.__version__)
+#print("CUDA compiled with Torch:", torch.version.cuda)
+
 device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+#print("device =", device)
 
 def main():
 
