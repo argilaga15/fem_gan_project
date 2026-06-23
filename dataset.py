@@ -11,7 +11,7 @@ def preprocess(x):
     return x
 
 class TomographyDataset(Dataset):
-    def __init__(self, volume, px=64, dsze=1.25, epoch_samples=10000):
+    def __init__(self, volume, px=128, dsze=1.25, epoch_samples=10000):
         self.volume=volume
         self.px=px
         self.pxs=int(round(px*dsze))

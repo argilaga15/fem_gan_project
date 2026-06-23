@@ -134,7 +134,13 @@ def main():
 
             save_loss_plot(epoch_num)
 
-        print(epoch_num, epoch_d_loss, epoch_g_loss)
+        #print(epoch_num, epoch_d_loss, epoch_g_loss)
+
+        print(
+            f"Epoch {epoch_num:04d}/{EPOCHS} "
+            f"D={epoch_d_loss:.4f} "
+            f"G={epoch_g_loss:.4f}"
+        )
 
     save_loss_plot(EPOCHS)
     (checkpoint_dir / 'loss_evolution.png').write_bytes(
