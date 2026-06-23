@@ -1,0 +1,8 @@
+#folders
+scans/
+snapshots/
+_pychache_/
+#files
+*.tex
+*.pdf
+*.pyc
