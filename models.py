@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 def _group_norm(channels):
     groups = min(8, channels)
@@ -11,9 +12,10 @@ def _spectral(layer):
     return nn.utils.spectral_norm(layer)
 
 class Generator3D(nn.Module):
-    def __init__(self, latent_dim=64, base_channels=256):
+    def __init__(self, latent_dim=64, base_channels=256, output_size=64):
         super().__init__()
         self.base_channels = base_channels
+        self.output_size = output_size
         self.fc = nn.Sequential(
             nn.Linear(latent_dim, base_channels*4*4*4),
             nn.ReLU(True)
@@ -38,7 +40,15 @@ class Generator3D(nn.Module):
     def forward(self,z):
         x=self.fc(z)
         x=x.view(z.size(0), self.base_channels, 4, 4, 4)
-        return self.net(x)
+        x = self.net(x)
+        if x.shape[-1] != self.output_size:
+            x = F.interpolate(
+                x,
+                size=(self.output_size, self.output_size, self.output_size),
+                mode='trilinear',
+                align_corners=False,
+            )
+        return x
 
 class Discriminator3D(nn.Module):
     def __init__(self, base_channels=16):
@@ -58,8 +68,9 @@ class Discriminator3D(nn.Module):
             _spectral(nn.Conv3d(base_channels*4, base_channels*8, 4, 2, 1)),
             _group_norm(base_channels*8),
             nn.LeakyReLU(0.2,True),
+            nn.AdaptiveAvgPool3d((1, 1, 1)),
             nn.Flatten(),
-            _spectral(nn.Linear(base_channels*8*4*4*4,1))
+            _spectral(nn.Linear(base_channels*8,1))
         )
 
     def forward(self,x):

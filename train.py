@@ -33,7 +33,7 @@ def main():
     checkpoint_dir = Path("checkpoints")
     checkpoint_dir.mkdir(exist_ok=True)
 
-    G=Generator3D(LATENT_DIM).to(device)
+    G=Generator3D(LATENT_DIM, output_size=PX).to(device)
     D=Discriminator3D().to(device)
     ema_G=copy.deepcopy(G).eval()
 
