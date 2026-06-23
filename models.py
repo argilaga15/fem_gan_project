@@ -69,9 +69,8 @@ class Discriminator3D(nn.Module):
             _group_norm(base_channels*8),
             nn.LeakyReLU(0.2,True),
             nn.AdaptiveAvgPool3d((1, 1, 1)),
-            nn.Flatten(),
-            _spectral(nn.Linear(base_channels*8,1))
+            _spectral(nn.Conv3d(base_channels*8, 1, 1))
         )
 
     def forward(self,x):
-        return self.net(x)
+        return self.net(x).flatten(1)

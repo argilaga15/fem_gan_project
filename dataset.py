@@ -3,6 +3,8 @@ import torch
 from torch.utils.data import Dataset
 from scipy.ndimage import zoom
 
+from config import DSZE, EPOCH_SAMPLES, derive_dsze, derive_epoch_samples
+
 def preprocess(x, invert=False):
     x = np.asarray(x)
 
@@ -44,11 +46,12 @@ def preprocess(x, invert=False):
     return x.astype(np.float32, copy=False)
 
 class TomographyDataset(Dataset):
-    def __init__(self, volume, px, dsze=1.00, epoch_samples=1000, invert=False):
+    def __init__(self, volume, px, dsze=None, epoch_samples=None, invert=False):
         self.volume=volume
         self.px=px
-        self.pxs=int(round(px*dsze))
-        self.epoch_samples=epoch_samples
+        self.dsze=derive_dsze(px) if dsze is None else dsze
+        self.epoch_samples=derive_epoch_samples(px) if epoch_samples is None else epoch_samples
+        self.pxs=int(round(px*self.dsze))
         self.invert=invert
         self.h=self.pxs//2
 
@@ -57,20 +60,29 @@ class TomographyDataset(Dataset):
         self.yc=volume.shape[1]//2
         self.z_margin=self.h+80
 
-        self.L=int(volume.shape[2]-2*self.z_margin)
+        # Compute a safe crop margin so every sample stays inside the volume.
+        max_h = min(self.xc, self.yc, volume.shape[2] // 2 - 1)
+        if self.h > max_h:
+            raise ValueError(
+                f"Volume {volume.shape} is too small for PX={self.px} with DSZE={self.dsze}."
+            )
+
+        self.h = min(self.h, max_h)
+        self.pxs = self.h * 2
+        self.z_margin = self.h + 1
+        self.L = int(volume.shape[2] - 2 * self.z_margin)
+        if self.L <= 0:
+            raise ValueError(
+                f"Volume depth {volume.shape[2]} is too small for PX={self.px} with DSZE={self.dsze}."
+            )
 
         # Preserve the original "ring" sampling idea, but cap it so that
         # x/y crops never run off the edge of the volume.
         safe_center=min(self.xc, self.yc)
-        self.R=int(safe_center-100-round(self.pxs*0.7071))
-
-        if self.L <= 0:
-            raise ValueError(
-                f"Volume depth {volume.shape[2]} is too small for a {self.px}px crop."
-            )
+        self.R=int(safe_center - self.h - 1)
         if self.R <= 0:
             raise ValueError(
-                f"Volume spatial size {volume.shape[:2]} is too small for a {self.px}px crop."
+                f"Volume spatial size {volume.shape[:2]} is too small for PX={self.px} with DSZE={self.dsze}."
             )
 
     def __len__(self):
