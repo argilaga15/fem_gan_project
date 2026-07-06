@@ -12,7 +12,7 @@ def _spectral(layer):
     return nn.utils.spectral_norm(layer)
 
 class Generator3D(nn.Module):
-    def __init__(self, latent_dim=64, base_channels=256, output_size=64):
+    def __init__(self, latent_dim, base_channels=128, output_size=64):
         super().__init__()
         self.base_channels = base_channels
         self.output_size = output_size
@@ -23,16 +23,16 @@ class Generator3D(nn.Module):
         self.net = nn.Sequential(
             nn.ConvTranspose3d(base_channels, base_channels//2, 4, 2, 1),
             _group_norm(base_channels//2),
-            nn.ReLU(True),
+            nn.LeakyReLU(0.2,True),
             nn.ConvTranspose3d(base_channels//2, base_channels//4, 4, 2, 1),
             _group_norm(base_channels//4),
-            nn.ReLU(True),
+            nn.LeakyReLU(0.2,True),
             nn.ConvTranspose3d(base_channels//4, base_channels//8, 4, 2, 1),
             _group_norm(base_channels//8),
-            nn.ReLU(True),
+            nn.LeakyReLU(0.2,True),
             nn.ConvTranspose3d(base_channels//8, base_channels//16, 4, 2, 1),
             _group_norm(base_channels//16),
-            nn.ReLU(True),
+            nn.LeakyReLU(0.2,True),
             nn.Conv3d(base_channels//16, 1, 3, padding=1),
             nn.Tanh()
         )
@@ -56,15 +56,15 @@ class Discriminator3D(nn.Module):
         self.net = nn.Sequential(
             _spectral(nn.Conv3d(1, base_channels, 4, 2, 1)),
             nn.LeakyReLU(0.2,True),
-            nn.Dropout3d(0.1),
+            nn.Dropout3d(0.3),
             _spectral(nn.Conv3d(base_channels, base_channels*2, 4, 2, 1)),
             _group_norm(base_channels*2),
             nn.LeakyReLU(0.2,True),
-            nn.Dropout3d(0.1),
+            nn.Dropout3d(0.3),
             _spectral(nn.Conv3d(base_channels*2, base_channels*4, 4, 2, 1)),
             _group_norm(base_channels*4),
             nn.LeakyReLU(0.2,True),
-            nn.Dropout3d(0.1),
+            nn.Dropout3d(0.3),
             _spectral(nn.Conv3d(base_channels*4, base_channels*8, 4, 2, 1)),
             _group_norm(base_channels*8),
             nn.LeakyReLU(0.2,True),

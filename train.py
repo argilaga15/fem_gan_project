@@ -25,7 +25,7 @@ device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def main():
 
     #volume=np.load('tomography.npy')   # replace with your volume
-    volume = load_volume("./scans/A4-1_raw_sub_1.tif")
+    volume = load_volume("./scans/CastleGate_2d25um_grayscale_filtered.tif")   #CastleGate_2d25um_grayscale_filtered A4-1_raw_sub_1
 
     ds=TomographyDataset(volume, px=PX, epoch_samples=EPOCH_SAMPLES)
     loader=DataLoader(ds,batch_size=BATCH_SIZE,shuffle=False,num_workers=4)
